@@ -3,3 +3,8 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+assignment1/__pycache__
+assignment1/.vscode
+.vscode
+assignment1/.env
