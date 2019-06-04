@@ -32,6 +32,7 @@ the parameters P, nS, nA, gamma are defined as follows:
 		Discount factor. Number in range [0, 1)
 """
 
+
 def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
 	"""Evaluate the value function from a given policy.
 
@@ -55,7 +56,6 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
 
 	############################
 	# YOUR IMPLEMENTATION HERE #
-
 
 	############################
 	return value_function
@@ -86,65 +86,37 @@ def policy_improvement(P, nS, nA, value_from_policy, policy, gamma=0.9):
 	############################
 	# YOUR IMPLEMENTATION HERE #
 
-
 	############################
 	return new_policy
 
 
 def policy_iteration(P, nS, nA, gamma=0.9, tol=10e-3):
-	"""Runs policy iteration.
+ 	value_function = np.zeros(nS)
+ 	policy = np.zeros(nS, dtype=int)
+ 	return value_function, policy
 
-	You should call the policy_evaluation() and policy_improvement() methods to
-	implement this method.
-
-	Parameters
-	----------
-	P, nS, nA, gamma:
-		defined at beginning of file
-	tol: float
-		tol parameter used in policy_evaluation()
-	Returns:
-	----------
-	value_function: np.ndarray[nS]
-	policy: np.ndarray[nS]
-	"""
-
-	value_function = np.zeros(nS)
-	policy = np.zeros(nS, dtype=int)
-
-	############################
-	# YOUR IMPLEMENTATION HERE #
-
-
-	############################
-	return value_function, policy
+def calc_value_function(P,s,nA,gamma,value_function):
+	val_a = np.zeros(nA)
+	for a in range(nA):
+		for prob,next_state,reward,_ in P[s][a]:
+			val_a[a]+=prob*(reward+gamma*value_function[next_state])
+	action=np.argmax(val_a)
+	return (action,val_a[action])
 
 def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
-	"""
-	Learn value function and policy by using value iteration method for a given
-	gamma and environment.
-
-	Parameters:
-	----------
-	P, nS, nA, gamma:
-		defined at beginning of file
-	tol: float
-		Terminate value iteration when
-			max |value_function(s) - prev_value_function(s)| < tol
-	Returns:
-	----------
-	value_function: np.ndarray[nS]
-	policy: np.ndarray[nS]
-	"""
-
-	value_function = np.zeros(nS)
+	value_function_new = np.zeros(nS)
 	policy = np.zeros(nS, dtype=int)
-	############################
-	# YOUR IMPLEMENTATION HERE #
+	value_function = np.full(nS,np.inf)
+	def inf_norm(a): return np.linalg.norm(a, ord=np.inf)
+	while np.abs(inf_norm(value_function)-inf_norm(value_function_new)) > tol:
+			value_function=value_function_new.copy()
+			for s in range(nS):
+					_,value_function_new[s]=calc_value_function(P,s,nA,gamma,value_function)
+			delta=np.abs(inf_norm(value_function)-inf_norm(value_function_new))
+	for s in range(nS):
+		policy[s],_=calc_value_function(P,s,nA,gamma,value_function_new)
+	return value_function_new, policy
 
-
-	############################
-	return value_function, policy
 
 def render_single(env, policy, max_steps=100):
   """
@@ -170,7 +142,7 @@ def render_single(env, policy, max_steps=100):
     episode_reward += rew
     if done:
       break
-  env.render();
+  env.render()
   if not done:
     print("The agent didn't reach a terminal state in {} steps.".format(max_steps))
   else:
@@ -184,16 +156,14 @@ if __name__ == "__main__":
 
 	# comment/uncomment these lines to switch between deterministic/stochastic environments
 	env = gym.make("Deterministic-4x4-FrozenLake-v0")
-	# env = gym.make("Stochastic-4x4-FrozenLake-v0")
+	#env = gym.make("Stochastic-4x4-FrozenLake-v0")
 
-	print("\n" + "-"*25 + "\nBeginning Policy Iteration\n" + "-"*25)
+	# print("\n" + "-"*25 + "\nBeginning Policy Iteration\n" + "-"*25)
 
-	V_pi, p_pi = policy_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
-	render_single(env, p_pi, 100)
+	# V_pi, p_pi = policy_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
+	# render_single(env, p_pi, 100)
 
 	print("\n" + "-"*25 + "\nBeginning Value Iteration\n" + "-"*25)
 
 	V_vi, p_vi = value_iteration(env.P, env.nS, env.nA, gamma=0.9, tol=1e-3)
 	render_single(env, p_vi, 100)
-
-
